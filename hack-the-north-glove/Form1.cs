@@ -15,12 +15,9 @@ namespace hack_the_north_glove
 {
     public partial class Form1 : Form
     {
-        public VirtualKeyCode inputKeyboard1;
-        public VirtualKeyCode inputKeyboard2;
-        public VirtualKeyCode inputKeyboard3;
-        public VirtualKeyCode inputKeyboard4;
-
         public VirtualKeyCode[] inputKeyboard = {VirtualKeyCode.F24, VirtualKeyCode.F24, VirtualKeyCode.F24 , VirtualKeyCode.F24 };
+        public string[] inputMouseMovement = { "", "", "", "" };
+        public string[] mouseMovementValues = {"MouseLeft", "MouseUp", "MouseDown", "MouseRight"};
 
         static Timer inputTimer = new Timer();
 
@@ -29,6 +26,8 @@ namespace hack_the_north_glove
         public Form1()
         {
             InitializeComponent();
+            
+            //Keyboard dropdowns
             Array itemData = System.Enum.GetValues(typeof(VirtualKeyCode));
             foreach(var data in itemData)
             {
@@ -37,7 +36,14 @@ namespace hack_the_north_glove
                 this.comboBox3.Items.Add(data);
                 this.comboBox4.Items.Add(data);
             }
-            //InputController.InputManagment();
+            //Mouse movement dropdowns
+            foreach(var data in mouseMovementValues)
+            {
+                this.comboBox5.Items.Add(data);
+                this.comboBox6.Items.Add(data);
+                this.comboBox7.Items.Add(data);
+                this.comboBox8.Items.Add(data);
+            }
 
             serialPort  = new SerialPort("COM4", 9600);
 
@@ -54,39 +60,82 @@ namespace hack_the_north_glove
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            inputKeyboard1 = (VirtualKeyCode)comboBox1.SelectedItem;
             inputKeyboard[0] = (VirtualKeyCode)comboBox1.SelectedItem;
             //label1.Text = inputKeyboard1.ToString();
         }
 
         private void comboBox2_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            inputKeyboard2 = (VirtualKeyCode)comboBox2.SelectedItem;
             inputKeyboard[1] = (VirtualKeyCode)comboBox2.SelectedItem;
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
-            inputKeyboard3 = (VirtualKeyCode)comboBox3.SelectedItem;
             inputKeyboard[2] = (VirtualKeyCode)comboBox3.SelectedItem;
         }
 
         private void comboBox4_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            inputKeyboard4 = (VirtualKeyCode)comboBox4.SelectedItem;
             inputKeyboard[3] = (VirtualKeyCode)comboBox4.SelectedItem;
         }
-        private void button1_Click_1(object sender, EventArgs e)
+
+        private void comboBox5_SelectedIndexChanged(object sender, EventArgs e)
         {
-          
+            inputMouseMovement[0] = (string)comboBox5.SelectedItem;
+        }
+        private void comboBox6_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            inputMouseMovement[1] = (string)comboBox6.SelectedItem;
+        }
+
+        private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            inputMouseMovement[2] = (string)comboBox7.SelectedItem;
+        }
+
+        private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            inputMouseMovement[3] = (string)comboBox8.SelectedItem;
         }
         public void InputManagment()
         {
-            inputTimer.Interval = 1000;
+            inputTimer.Interval = 800;
             inputTimer.Tick += new EventHandler(inputTimerTick);
             inputTimer.Start();
         }
 
+        public void handleKeyboard(VirtualKeyCode vKC)
+        {
+            InputSimulator simulator = new InputSimulator();
+            simulator.Keyboard.KeyDown(vKC);
+        }
+        
+        public void handleMouseMove(string s)
+        {
+            int adder = 50;
+            
+            this.Cursor = new Cursor(Cursor.Current.Handle);
+            if (s == "MouseLeft")
+            {
+                Cursor.Position = new Point(Cursor.Position.X - adder, Cursor.Position.Y);
+                Cursor.Clip = new Rectangle(this.Location, this.Size);
+            }
+            else if (s == "MouseUp")
+            {
+                Cursor.Position = new Point(Cursor.Position.X, Cursor.Position.Y - adder);
+                Cursor.Clip = new Rectangle(this.Location, this.Size);
+            }
+            else if (s == "MouseDown")
+            {
+                Cursor.Position = new Point(Cursor.Position.X, Cursor.Position.Y + adder);
+                Cursor.Clip = new Rectangle(this.Location, this.Size);
+            }
+            else if (s == "MouseRight")
+            {
+                Cursor.Position = new Point(Cursor.Position.X + adder, Cursor.Position.Y);
+                Cursor.Clip = new Rectangle(this.Location, this.Size);
+            }
+        }
         private void arduinoTimerTick(object Sender, EventArgs e)
         {
             arduinoOutput = serialPort.ReadLine();
@@ -96,35 +145,28 @@ namespace hack_the_north_glove
         {
             arduinoOutput = serialPort.ReadLine();
             label2.Text = arduinoOutput;
-
-            // Set the caption to the current time.              
-
-            if (arduinoOutput.Contains("right"))
+    
+            if (arduinoOutput.Contains("left"))
             {
-                InputSimulator simulator = new InputSimulator();
-                simulator.Keyboard.KeyDown(inputKeyboard[3]);
+                handleKeyboard(inputKeyboard[0]);
+                handleMouseMove(inputMouseMovement[0]);
             }
             if (arduinoOutput.Contains("up"))
             {
-                InputSimulator simulator = new InputSimulator();
-                simulator.Keyboard.KeyDown(inputKeyboard[1]);
+                handleKeyboard(inputKeyboard[1]);
+                handleMouseMove(inputMouseMovement[1]);
             }
             if (arduinoOutput.Contains("down"))
             {
-                InputSimulator simulator = new InputSimulator();
-                simulator.Keyboard.KeyDown(inputKeyboard[2]);
+                handleKeyboard(inputKeyboard[2]);
+                handleMouseMove(inputMouseMovement[2]);
             }
-            if (arduinoOutput.Contains("left"))
+            if (arduinoOutput.Contains("right"))
             {
-                InputSimulator simulator = new InputSimulator();
-                simulator.Keyboard.KeyDown(inputKeyboard[0]);
+                handleKeyboard(inputKeyboard[3]);
+                handleMouseMove(inputMouseMovement[3]);
             }
-            
-            
-            
 
         }
-
-        
     }
 }
